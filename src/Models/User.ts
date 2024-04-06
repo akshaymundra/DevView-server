@@ -18,7 +18,8 @@ const userSchema = new Schema({
         required: true,
     },
     skills: [{
-        type: String,
+        label: String,
+        value: String,
     }],
     experienceLevel: {
         type: String,
