@@ -19,6 +19,7 @@ export const login = asyncHandler(async (req, res) => {
             const tokenObject = issueJwt(user);
 
             res.status(200).json({
+                user,
                 success: true,
                 token: tokenObject.token,
                 expiresIn: tokenObject.expires

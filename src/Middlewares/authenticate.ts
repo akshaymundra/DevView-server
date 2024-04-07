@@ -7,6 +7,7 @@ const authenticate = (req: Request, res: Response, next: NextFunction) => {
             return res.status(401).json({
                 message: 'Unauthorized',
                 error: info ? info.message : 'Unknown error',
+                success: false,
             });
         }
         req.user = user;
