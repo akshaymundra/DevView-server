@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
+import { v4 as uuidv4 } from 'uuid';
 
 const interviewRequestSchema = new Schema({
     requester: {
@@ -9,7 +10,8 @@ const interviewRequestSchema = new Schema({
     },
     responder: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        defualt: null
     },
     topic: {
         type: String,
@@ -23,11 +25,13 @@ const interviewRequestSchema = new Schema({
     },
     requestedTime: {
         type: Date,
-        required: true
+        required: true,
+        default: Date.now
     },
     room: {
         type: String,
-        required: true
+        required: true,
+        default: uuidv4
     }
 }, { timestamps: true });
 
