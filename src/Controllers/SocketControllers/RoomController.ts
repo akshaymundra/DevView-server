@@ -3,6 +3,7 @@ import InterviewRequest from "../../Models/InterviewRequest";
 import BaseController from "./BaseController";
 
 const rooms: { [key: string]: string[] } = {};
+const roomPeers: { [key: string]: { userId: string, peerId: string }[] } = {};
 
 export default class RoomController extends BaseController {
 
@@ -53,6 +54,47 @@ export default class RoomController extends BaseController {
 
         } catch (error) {
         }
+    };
+
+    peerConnect = async (data: { roomId: string, peerId: string, userId: string }) => {
+        const { roomId, peerId, userId } = data;
+        if (!roomPeers[roomId]) {
+            roomPeers[roomId] = [];
+        }
+
+        if (!roomPeers[roomId].find(peer => peer.userId === userId)) {
+            roomPeers[roomId].push({ userId, peerId });
+        } else {
+            roomPeers[roomId].map(peer => {
+                if (peer.userId === userId) {
+                    peer.peerId = peerId;
+                }
+            });
+        }
+
+        this._io.in(roomId).emit('room:peer-connect', {
+            peerList: roomPeers[roomId]
+        });
+    }
+
+
+    peerDisconnect = async (data: { roomId: string, peerId: string }) => {
+        const { roomId, peerId } = data;
+        if (roomPeers[roomId]) {
+            roomPeers[roomId] = roomPeers[roomId].filter(peer => peer.peerId !== peerId);
+        }
+
+        try {
+            await InterviewRequest.findOneAndUpdate({ room: roomId }, { status: 'completed' });
+        } catch (error) {
+            console.log(error);
+            throw new Error("something went wrong while updating the interview request status");
+        }
+
+        this._io.in(roomId).emit('room:peer-disconnect', {
+            peerList: roomPeers[roomId],
+            peerId
+        });
     }
 
 }
