@@ -8,6 +8,12 @@ const roomPeers: { [key: string]: { userId: string, peerId: string }[] } = {};
 export default class RoomController extends BaseController {
 
 
+    /**
+     * Joins a room with the specified roomId and userId.
+     * 
+     * @param data - An object containing the roomId and userId.
+     * @returns Promise<void>
+     */
     joinRoom = async (data: { roomId: string, userId: string }) => {
 
         const { roomId, userId } = data;
@@ -17,6 +23,12 @@ export default class RoomController extends BaseController {
             if (!interviewRequest) return this.socket?.emit('room:joined', {
                 status: 404,
                 message: 'No room found',
+                success: false
+            });
+
+            if (interviewRequest.status === 'completed' || interviewRequest.status === 'cancelled') return this.socket?.emit('room:joined', {
+                status: 400,
+                message: 'Interview finished or cancelled',
                 success: false
             });
 
@@ -40,6 +52,10 @@ export default class RoomController extends BaseController {
                 rooms[roomId].push(userId);
             }
 
+            if (rooms[roomId].length === 2) {
+                this.clearInterviewrequestFromHome(roomId);
+            }
+
             this.socket.join(roomId);
 
             this._io.in(roomId).emit('room:joined', {
@@ -52,10 +68,14 @@ export default class RoomController extends BaseController {
             });
 
 
-        } catch (error) {
-        }
+        } catch (error) { console.log(error); }
+
     };
 
+    /**
+     * Connects a peer to a room.
+     * @param data - The data object containing the roomId, peerId, and userId.
+     */
     peerConnect = async (data: { roomId: string, peerId: string, userId: string }) => {
         const { roomId, peerId, userId } = data;
         if (!roomPeers[roomId]) {
@@ -78,6 +98,10 @@ export default class RoomController extends BaseController {
     }
 
 
+    /**
+     * Handles the disconnection of a peer from a room.
+     * @param data - The data object containing the roomId and peerId.
+     */
     peerDisconnect = async (data: { roomId: string, peerId: string }) => {
         const { roomId, peerId } = data;
         if (roomPeers[roomId]) {
@@ -95,6 +119,18 @@ export default class RoomController extends BaseController {
             peerList: roomPeers[roomId],
             peerId
         });
+
+        this.clearInterviewrequestFromHome(roomId);
+
+    }
+
+
+    /**
+     * Clears the interview request from the home page.
+     * @param roomId - The ID of the room.
+     */
+    clearInterviewrequestFromHome = (roomId: string) => {
+        this._io.emit('room:clear-interview', { roomId });
     }
 
 }

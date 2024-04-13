@@ -37,7 +37,7 @@ export const requestInterview = [
 
         // update the prev requist to be cancelled 
         await InterviewRequest.updateMany(
-            { requester: user._id, status: 'pending' },
+            { requester: user._id, status: 'active' },
             { $set: { status: 'cancelled' } }
         );
         await interviewReq.save();
@@ -50,13 +50,19 @@ export const requestInterview = [
                 message: 'New interview request',
                 success: true,
                 status: 200,
+                user: {
+                    _id: user._id,
+                    fullName: user.fullName,
+                    email: user.email,
+                    skills: user.skills
+                }
             });
         }
 
         res.status(200).json({
             success: true,
             message: 'Interview request made successfully',
-            interviewReq
+            interviewReq,
         });
     })
 ]

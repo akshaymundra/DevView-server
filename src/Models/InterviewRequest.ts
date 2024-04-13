@@ -20,8 +20,8 @@ const interviewRequestSchema = new Schema({
     description: String,
     status: {
         type: String,
-        enum: ['pending', 'accepted', 'rejected', 'completed'],
-        default: 'pending'
+        enum: ['active', 'cancelled', 'completed'],
+        default: 'active'
     },
     requestedTime: {
         type: Date,
